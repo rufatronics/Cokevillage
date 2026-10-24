@@ -2,9 +2,9 @@
 > ck-village-ordering@0.1.0 start
 > next start
 
-   ▲ Next.js 15.1.7
-   - Local:        http://localhost:3000
-   - Network:      http://192.168.0.2:3000
+   ▲ Next.js 15.5.28
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.0.2:3001
 
  ✓ Starting...
- ✓ Ready in 469ms
+ ✓ Ready in 438ms
