@@ -16,6 +16,7 @@ export default function VendorSignupPage() {
     locationText: '',
     whatsappNumber: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,12 @@ export default function VendorSignupPage() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -73,10 +80,12 @@ export default function VendorSignupPage() {
           <input
             type="text"
             required
-            className="mt-1 w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="e.g. Amina Musa"
+            className="mt-1 w-full rounded border border-gray-300 p-2.5 text-sm"
             value={formData.fullName}
             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
           />
+          <p className="mt-1 text-xs text-gray-500">Your full legal or operating name.</p>
         </div>
 
         <div>
@@ -84,22 +93,35 @@ export default function VendorSignupPage() {
           <input
             type="email"
             required
-            className="mt-1 w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="e.g. amina@gmail.com"
+            className="mt-1 w-full rounded border border-gray-300 p-2.5 text-sm"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
+          <p className="mt-1 text-xs text-gray-500">Used to sign in to your vendor dashboard.</p>
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-700">Password</label>
-          <input
-            type="password"
-            required
-            minLength={6}
-            className="mt-1 w-full rounded border border-gray-300 p-2 text-sm"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
+          <div className="relative mt-1">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              required
+              minLength={8}
+              placeholder="Minimum 8 characters"
+              className="w-full rounded border border-gray-300 p-2.5 text-sm pr-16"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters long.</p>
         </div>
 
         <div>
@@ -107,10 +129,12 @@ export default function VendorSignupPage() {
           <input
             type="text"
             required
-            className="mt-1 w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="e.g. Mama Put Kitchen"
+            className="mt-1 w-full rounded border border-gray-300 p-2.5 text-sm"
             value={formData.shopName}
             onChange={(e) => handleShopNameChange(e.target.value)}
           />
+          <p className="mt-1 text-xs text-gray-500">The public name of your shop in CK Village.</p>
         </div>
 
         <div>
@@ -118,10 +142,12 @@ export default function VendorSignupPage() {
           <input
             type="text"
             required
-            className="mt-1 w-full rounded border border-gray-300 bg-gray-50 p-2 text-sm"
+            placeholder="e.g. mama-put-kitchen"
+            className="mt-1 w-full rounded border border-gray-300 bg-gray-50 p-2.5 text-sm"
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
           />
+          <p className="mt-1 text-xs text-gray-500">URL path: /s/mama-put-kitchen</p>
         </div>
 
         <div>
@@ -129,11 +155,12 @@ export default function VendorSignupPage() {
           <input
             type="text"
             required
-            placeholder="e.g. Block A, Shop 4"
-            className="mt-1 w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="e.g. Beside the main gate, shop 12"
+            className="mt-1 w-full rounded border border-gray-300 p-2.5 text-sm"
             value={formData.locationText}
             onChange={(e) => setFormData({ ...formData, locationText: e.target.value })}
           />
+          <p className="mt-1 text-xs text-gray-500">Clear address for students to find your shop.</p>
         </div>
 
         <div>
@@ -141,27 +168,30 @@ export default function VendorSignupPage() {
           <input
             type="tel"
             required
-            placeholder="08012345678"
-            className="mt-1 w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="e.g. 08012345678"
+            className="mt-1 w-full rounded border border-gray-300 p-2.5 text-sm"
             value={formData.whatsappNumber}
             onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
           />
+          <p className="mt-1 text-xs text-gray-500">Accepts 0801..., +234..., or 234...</p>
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-700">Shop Description</label>
           <textarea
-            className="mt-1 w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="e.g. Rice, beans, jollof and cold drinks"
+            className="mt-1 w-full rounded border border-gray-300 p-2.5 text-sm"
             rows={2}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
+          <p className="mt-1 text-xs text-gray-500">Short summary of what your shop sells.</p>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded bg-emerald-700 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+          className="w-full rounded bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 min-h-[44px]"
         >
           {loading ? 'Submitting...' : 'Register Shop'}
         </button>

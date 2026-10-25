@@ -1,14 +1,17 @@
 export function normalizeWhatsAppNumber(phone: string): string {
-  // Strip all non-digit characters
   let digits = phone.replace(/\D/g, '');
 
-  // If starts with 0 (e.g. 08012345678), replace leading 0 with 234
   if (digits.startsWith('0')) {
     digits = '234' + digits.slice(1);
   }
 
-  // If user entered e.g. +234..., stripping \D leaves 234... which is correct
   return digits;
+}
+
+export function isValidNigerianPhoneNumber(phone: string): boolean {
+  const normalized = normalizeWhatsAppNumber(phone);
+  // Nigerian numbers normalized start with 234 followed by 10 digits (total 13 digits)
+  return /^234[789][01]\d{8}$/.test(normalized);
 }
 
 export function formatWhatsAppUrl(phone: string, text?: string): string {

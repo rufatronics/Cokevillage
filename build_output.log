@@ -8,7 +8,7 @@
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (128kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (114kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (268kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled successfully in 14.9s
+ ✓ Compiled successfully in 13.0s
    Linting and checking validity of types ...
    Collecting page data ...
 Invalid environment variables: {
@@ -50,7 +50,7 @@ Invalid environment variables: {
     ]
   }
 }
-   Generating static pages (0/16) ...
+   Generating static pages (0/20) ...
 Invalid environment variables: {
   "_errors": [],
   "NEXT_PUBLIC_SUPABASE_URL": {
@@ -64,9 +64,8 @@ Invalid environment variables: {
     ]
   }
 }
-   Generating static pages (4/16)
-   Generating static pages (8/16)
-   Generating static pages (12/16)
+   Generating static pages (5/20)
+   Generating static pages (10/20)
 Invalid environment variables: {
   "_errors": [],
   "NEXT_PUBLIC_SUPABASE_URL": {
@@ -80,26 +79,31 @@ Invalid environment variables: {
     ]
   }
 }
- ✓ Generating static pages (16/16)
+   Generating static pages (15/20)
+ ✓ Generating static pages (20/20)
    Finalizing page optimization ...
    Collecting build traces ...
 
 Route (app)                                 Size  First Load JS
-┌ ƒ /                                      164 B         106 kB
-├ ○ /_not-found                            991 B         104 kB
-├ ƒ /admin                               1.24 kB         104 kB
+┌ ƒ /                                      166 B         106 kB
+├ ƒ /_not-found                            991 B         104 kB
+├ ƒ /admin                               1.37 kB         104 kB
 ├ ƒ /api/admin/shops                       138 B         103 kB
 ├ ƒ /api/reports                           138 B         103 kB
 ├ ƒ /api/vendor/categories                 138 B         103 kB
 ├ ƒ /api/vendor/items                      138 B         103 kB
 ├ ƒ /api/vendor/shop                       138 B         103 kB
 ├ ƒ /api/vendor/signup                     138 B         103 kB
+├ ƒ /cart                                  166 B         106 kB
+├ ƒ /forgot-password                     1.62 kB         188 kB
+├ ƒ /login                               1.83 kB         189 kB
+├ ƒ /reset-password                      1.69 kB         185 kB
 ├ ƒ /s/[slug]                            2.22 kB         186 kB
-├ ƒ /search                                164 B         106 kB
+├ ƒ /search                                166 B         106 kB
 ├ ƒ /vendor                                729 B         107 kB
-├ ○ /vendor/login                        1.56 kB         188 kB
+├ ƒ /vendor/login                        1.56 kB         188 kB
 ├ ƒ /vendor/menu                         22.5 kB         206 kB
-└ ○ /vendor/signup                       1.49 kB         108 kB
+└ ƒ /vendor/signup                       1.95 kB         108 kB
 + First Load JS shared by all             103 kB
   ├ chunks/255-b1e2483a7e02feee.js       46.6 kB
   ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
@@ -108,5 +112,4 @@ Route (app)                                 Size  First Load JS
 
 ƒ Middleware                              107 kB
 
-○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
