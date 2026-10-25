@@ -1,37 +1,17 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
+import { verifyUserRole } from '@/lib/utils/api';
 
 const actionSchema = z.object({
   shopId: z.string().uuid(),
   action: z.enum(['approve', 'reject', 'suspend']),
 });
 
-async function verifyAdminRole() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { authorized: false, status: 401, error: 'Authentication required. Please log in.' };
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile || profile.role !== 'admin') {
-    return { authorized: false, status: 403, error: 'Forbidden: Admin privileges required.' };
-  }
-
-  return { authorized: true, user };
-}
-
 export async function GET() {
-  const authCheck = await verifyAdminRole();
+  const authCheck = await verifyUserRole(['admin']);
   if (!authCheck.authorized) {
-    return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    return authCheck.response;
   }
 
   try {
@@ -55,9 +35,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const authCheck = await verifyAdminRole();
+  const authCheck = await verifyUserRole(['admin']);
   if (!authCheck.authorized) {
-    return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    return authCheck.response;
   }
 
   try {
@@ -66,47 +46,29 @@ export async function POST(request: Request) {
 
     const adminSupabase = await createAdminClient();
 
-    const { data: shop, error: fetchError } = await adminSupabase
-      .from('shops')
-      .select('id, owner_id, status, profiles:owner_id(role)')
-      .eq('id', validated.shopId)
-      .single();
-
-    if (fetchError || !shop) {
-      return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
-    }
-
     if (validated.action === 'approve') {
-      const { error: shopUpdateErr } = await adminSupabase
-        .from('shops')
-        .update({ status: 'approved', updated_at: new Date().toISOString() })
-        .eq('id', shop.id);
+      // Call atomic RPC function approve_shop
+      const { data, error } = await adminSupabase.rpc('approve_shop', {
+        p_shop_id: validated.shopId,
+      });
 
-      if (shopUpdateErr) {
-        return NextResponse.json({ error: shopUpdateErr.message }, { status: 400 });
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
       }
 
-      // Check current role of shop owner; preserve if already admin
-      const ownerRole = (shop.profiles as unknown as { role?: string })?.role;
-      if (ownerRole !== 'admin') {
-        const { error: profileUpdateErr } = await adminSupabase
-          .from('profiles')
-          .update({ role: 'vendor', updated_at: new Date().toISOString() })
-          .eq('id', shop.owner_id);
-
-        if (profileUpdateErr) {
-          return NextResponse.json({ error: profileUpdateErr.message }, { status: 400 });
-        }
+      const result = data as { success: boolean; message?: string; error?: string };
+      if (!result.success) {
+        return NextResponse.json({ error: result.error || 'Shop approval failed' }, { status: 400 });
       }
 
-      return NextResponse.json({ success: true, message: 'Shop approved successfully.' });
+      return NextResponse.json({ success: true, message: result.message || 'Shop approved successfully.' });
     } else if (validated.action === 'reject' || validated.action === 'suspend') {
       const newStatus = validated.action === 'suspend' ? 'suspended' : 'pending';
 
       const { error: updateErr } = await adminSupabase
         .from('shops')
         .update({ status: newStatus, is_open: false, updated_at: new Date().toISOString() })
-        .eq('id', shop.id);
+        .eq('id', validated.shopId);
 
       if (updateErr) {
         return NextResponse.json({ error: updateErr.message }, { status: 400 });

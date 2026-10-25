@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { verifyUserRole } from '@/lib/utils/api';
 
 const updateShopSchema = z.object({
   isOpen: z.boolean(),
@@ -10,25 +11,28 @@ const updateShopSchema = z.object({
 });
 
 export async function PATCH(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const authCheck = await verifyUserRole(['vendor', 'admin']);
+  if (!authCheck.authorized) {
+    return authCheck.response;
   }
 
   try {
     const body = await request.json();
     const validated = updateShopSchema.parse(body);
 
+    const supabase = await createClient();
     const { data: shop } = await supabase
       .from('shops')
-      .select('id')
-      .eq('owner_id', user.id)
+      .select('id, status')
+      .eq('owner_id', authCheck.user.id)
       .single();
 
     if (!shop) {
       return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
+    }
+
+    if (shop.status !== 'approved' && authCheck.role !== 'admin') {
+      return NextResponse.json({ error: 'Shop must be approved before editing' }, { status: 403 });
     }
 
     const { error } = await supabase

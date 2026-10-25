@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth';
 import HeaderNav from '@/components/HeaderNav';
 
 export const metadata: Metadata = {
@@ -14,22 +14,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  let role: 'student' | 'vendor' | 'admin' | null = null;
-
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (profile) {
-      role = profile.role as 'student' | 'vendor' | 'admin';
-    }
-  }
+  const { user, role } = await getCurrentUser();
 
   return (
     <html lang="en">
@@ -39,7 +24,7 @@ export default async function RootLayout({
             <Link href="/" className="text-xl font-bold tracking-tight min-h-[44px] flex items-center">
               CK Village Ordering
             </Link>
-            <HeaderNav user={user ? { id: user.id, email: user.email } : null} role={role} />
+            <HeaderNav user={user} role={role} />
           </div>
         </header>
         <main className="mx-auto max-w-4xl p-4">{children}</main>
