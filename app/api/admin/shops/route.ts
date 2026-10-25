@@ -7,15 +7,14 @@ const actionSchema = z.object({
   action: z.enum(['approve', 'reject', 'suspend']),
 });
 
-export async function POST(request: Request) {
+async function verifyAdminRole() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return { authorized: false, status: 401, error: 'Authentication required. Please log in.' };
   }
 
-  // Check admin role
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
@@ -23,7 +22,42 @@ export async function POST(request: Request) {
     .single();
 
   if (!profile || profile.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    return { authorized: false, status: 403, error: 'Forbidden: Admin privileges required.' };
+  }
+
+  return { authorized: true, user };
+}
+
+export async function GET() {
+  const authCheck = await verifyAdminRole();
+  if (!authCheck.authorized) {
+    return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+  }
+
+  try {
+    const adminSupabase = await createAdminClient();
+    const { data: shops, error } = await adminSupabase
+      .from('shops')
+      .select('*, profiles:owner_id(full_name, email, role)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ shops: shops || [] });
+  } catch (err: unknown) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Failed to fetch admin shops' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  const authCheck = await verifyAdminRole();
+  if (!authCheck.authorized) {
+    return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
   }
 
   try {
@@ -32,10 +66,9 @@ export async function POST(request: Request) {
 
     const adminSupabase = await createAdminClient();
 
-    // Fetch shop details
     const { data: shop, error: fetchError } = await adminSupabase
       .from('shops')
-      .select('id, owner_id, status')
+      .select('id, owner_id, status, profiles:owner_id(role)')
       .eq('id', validated.shopId)
       .single();
 
@@ -44,7 +77,6 @@ export async function POST(request: Request) {
     }
 
     if (validated.action === 'approve') {
-      // 1. Set shop status to approved
       const { error: shopUpdateErr } = await adminSupabase
         .from('shops')
         .update({ status: 'approved', updated_at: new Date().toISOString() })
@@ -54,17 +86,20 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: shopUpdateErr.message }, { status: 400 });
       }
 
-      // 2. Set profile role to vendor
-      const { error: profileUpdateErr } = await adminSupabase
-        .from('profiles')
-        .update({ role: 'vendor', updated_at: new Date().toISOString() })
-        .eq('id', shop.owner_id);
+      // Check current role of shop owner; preserve if already admin
+      const ownerRole = (shop.profiles as unknown as { role?: string })?.role;
+      if (ownerRole !== 'admin') {
+        const { error: profileUpdateErr } = await adminSupabase
+          .from('profiles')
+          .update({ role: 'vendor', updated_at: new Date().toISOString() })
+          .eq('id', shop.owner_id);
 
-      if (profileUpdateErr) {
-        return NextResponse.json({ error: profileUpdateErr.message }, { status: 400 });
+        if (profileUpdateErr) {
+          return NextResponse.json({ error: profileUpdateErr.message }, { status: 400 });
+        }
       }
 
-      return NextResponse.json({ success: true, message: 'Shop approved and vendor role assigned.' });
+      return NextResponse.json({ success: true, message: 'Shop approved successfully.' });
     } else if (validated.action === 'reject' || validated.action === 'suspend') {
       const newStatus = validated.action === 'suspend' ? 'suspended' : 'pending';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Shop {
   id: string;
@@ -14,17 +14,44 @@ interface Shop {
   profiles?: {
     full_name: string;
     email: string;
+    role: string;
   };
 }
 
-export default function AdminShopList({ initialShops }: { initialShops: Shop[] }) {
-  const [shops, setShops] = useState<Shop[]>(initialShops);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+export default function AdminShopList() {
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const fetchShops = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/shops');
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to fetch shops');
+      }
+
+      setShops(data.shops || []);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error fetching shops');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchShops();
+  }, []);
+
   const handleAction = async (shopId: string, action: 'approve' | 'reject' | 'suspend') => {
-    setLoadingId(shopId);
+    setActionLoadingId(shopId);
     setMessage(null);
+    setError(null);
 
     try {
       const res = await fetch('/api/admin/shops', {
@@ -51,14 +78,23 @@ export default function AdminShopList({ initialShops }: { initialShops: Shop[] }
         })
       );
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Action failed');
+      setError(err instanceof Error ? err.message : 'Action failed');
     } finally {
-      setLoadingId(null);
+      setActionLoadingId(null);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+        Loading shops...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      {error && <div className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</div>}
       {message && <div className="rounded bg-green-50 p-3 text-sm text-green-700">{message}</div>}
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -76,7 +112,7 @@ export default function AdminShopList({ initialShops }: { initialShops: Shop[] }
             {shops.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-4 text-center text-sm text-gray-500">
-                  No shops found.
+                  No shops registered yet.
                 </td>
               </tr>
             ) : (
@@ -88,7 +124,7 @@ export default function AdminShopList({ initialShops }: { initialShops: Shop[] }
                   </td>
                   <td className="px-4 py-3">
                     <div>{shop.profiles?.full_name || 'N/A'}</div>
-                    <div className="text-xs text-gray-500">{shop.profiles?.email}</div>
+                    <div className="text-xs text-gray-500">{shop.profiles?.email} ({shop.profiles?.role})</div>
                   </td>
                   <td className="px-4 py-3">
                     <div>{shop.location_text}</div>
@@ -111,7 +147,7 @@ export default function AdminShopList({ initialShops }: { initialShops: Shop[] }
                     {shop.status !== 'approved' && (
                       <button
                         onClick={() => handleAction(shop.id, 'approve')}
-                        disabled={loadingId === shop.id}
+                        disabled={actionLoadingId === shop.id}
                         className="rounded bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                       >
                         Approve
@@ -120,7 +156,7 @@ export default function AdminShopList({ initialShops }: { initialShops: Shop[] }
                     {shop.status === 'approved' && (
                       <button
                         onClick={() => handleAction(shop.id, 'suspend')}
-                        disabled={loadingId === shop.id}
+                        disabled={actionLoadingId === shop.id}
                         className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
                       >
                         Suspend

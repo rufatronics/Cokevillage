@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin')) {
     if (!user) {
       const url = request.nextUrl.clone();
-      url.pathname = '/vendor/signup';
+      url.pathname = '/login';
       url.searchParams.set('redirectTo', pathname);
       return NextResponse.redirect(url);
     }
@@ -61,10 +61,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect /vendor routes (except signup/login)
-  if (pathname.startsWith('/vendor') && !pathname.startsWith('/vendor/signup') && !pathname.startsWith('/vendor/login')) {
+  if (
+    pathname.startsWith('/vendor') &&
+    !pathname.startsWith('/vendor/signup') &&
+    !pathname.startsWith('/vendor/login')
+  ) {
     if (!user) {
       const url = request.nextUrl.clone();
-      url.pathname = '/vendor/signup';
+      url.pathname = '/vendor/login';
       url.searchParams.set('redirectTo', pathname);
       return NextResponse.redirect(url);
     }
