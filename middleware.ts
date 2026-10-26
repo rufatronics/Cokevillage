@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Protect /admin routes
+  // 1. Protect /admin routes
   if (pathname.startsWith('/admin')) {
     if (!user) {
       const url = request.nextUrl.clone();
@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect /vendor routes (except signup/login)
+  // 2. Protect /vendor routes (except signup/login)
   if (
     pathname.startsWith('/vendor') &&
     !pathname.startsWith('/vendor/signup') &&
@@ -79,10 +79,13 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (!profile || (profile.role !== 'vendor' && profile.role !== 'admin')) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/';
-      return NextResponse.redirect(url);
+    // Students with pending/suspended shops or no shops can view /vendor dashboard to see status banner, but /vendor/menu requires vendor or admin
+    if (pathname.startsWith('/vendor/menu')) {
+      if (!profile || (profile.role !== 'vendor' && profile.role !== 'admin')) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/vendor';
+        return NextResponse.redirect(url);
+      }
     }
   }
 
