@@ -3,8 +3,8 @@
 > next start
 
    ▲ Next.js 15.5.28
-   - Local:        http://localhost:3002
-   - Network:      http://192.168.0.2:3002
+   - Local:        http://localhost:3003
+   - Network:      http://192.168.0.2:3003
 
  ✓ Starting...
- ✓ Ready in 845ms
+ ✓ Ready in 825ms
