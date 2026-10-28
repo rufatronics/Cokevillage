@@ -5,7 +5,7 @@
    ▲ Next.js 15.5.28
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 5.8s
+ ✓ Compiled successfully in 9.1s
    Linting and checking validity of types ...
    Collecting page data ...
 Invalid environment variables: {
@@ -62,7 +62,6 @@ Invalid environment variables: {
   }
 }
    Generating static pages (6/24)
-   Generating static pages (12/24)
 Invalid environment variables: {
   "_errors": [],
   "NEXT_PUBLIC_SUPABASE_URL": {
@@ -76,6 +75,7 @@ Invalid environment variables: {
     ]
   }
 }
+   Generating static pages (12/24)
    Generating static pages (18/24)
  ✓ Generating static pages (24/24)
    Finalizing page optimization ...
@@ -95,14 +95,14 @@ Route (app)                                 Size  First Load JS
 ├ ƒ /cart                                 3.3 kB         190 kB
 ├ ƒ /checkout                            1.09 kB         184 kB
 ├ ƒ /forgot-password                     1.64 kB         188 kB
-├ ƒ /login                               1.88 kB         189 kB
+├ ƒ /login                               2.96 kB         190 kB
 ├ ƒ /orders                                168 B         106 kB
 ├ ƒ /reset-password                      1.73 kB         185 kB
 ├ ƒ /s/[slug]                            4.26 kB         191 kB
 ├ ƒ /search                                168 B         106 kB
-├ ƒ /signup                               2.9 kB         190 kB
+├ ƒ /signup                              2.98 kB         190 kB
 ├ ƒ /vendor                                729 B         107 kB
-├ ƒ /vendor/login                         1.6 kB         188 kB
+├ ƒ /vendor/login                        2.91 kB         190 kB
 ├ ƒ /vendor/menu                         22.5 kB         206 kB
 └ ƒ /vendor/signup                       1.97 kB         108 kB
 + First Load JS shared by all             103 kB
